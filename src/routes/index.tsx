@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowUpRight, Truck, UtensilsCrossed, Printer, Moon, Sun } from "lucide-react";
+import { ArrowUpRight, Truck, UtensilsCrossed, Printer, Moon, Sun, LogIn, LogOut, User as UserIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useHub } from "@/store/hub";
 import { dateLabel } from "@/lib/format";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -45,6 +46,7 @@ function Landing() {
   const sales = useHub((s) => s.dupart.sales);
   const orders = useHub((s) => s.ghetto.orders);
   const trips = useHub((s) => s.express.trips);
+  const { user, profile, signOut } = useAuth();
 
   const [now, setNow] = useState<string>("");
   useEffect(() => {
@@ -78,13 +80,40 @@ function Landing() {
         <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
           JBH · v3
         </div>
-        <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="ring-focus rounded-md p-2 text-muted-foreground transition-colors hover:text-foreground"
-          aria-label="Toggle theme"
-        >
-          {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-        </button>
+        <div className="flex items-center gap-2">
+          {user ? (
+            <>
+              <div className="hidden sm:flex items-center gap-2 rounded-md border border-hairline bg-secondary/40 px-3 py-1.5">
+                <UserIcon className="size-3 text-muted-foreground" />
+                <span className="text-[11px] font-mono text-foreground">
+                  {profile?.display_name || user.email}
+                </span>
+              </div>
+              <button
+                onClick={() => signOut()}
+                className="ring-focus flex items-center gap-1.5 rounded-md border border-hairline px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:text-foreground hover:border-border-strong"
+              >
+                <LogOut className="size-3" />
+                <span className="hidden sm:inline">Sign out</span>
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/auth"
+              className="ring-focus flex items-center gap-1.5 rounded-md border border-border bg-foreground px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.16em] text-background transition-opacity hover:opacity-90"
+            >
+              <LogIn className="size-3" />
+              Sign in
+            </Link>
+          )}
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="ring-focus rounded-md p-2 text-muted-foreground transition-colors hover:text-foreground"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          </button>
+        </div>
       </div>
 
       {/* hero */}
