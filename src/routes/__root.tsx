@@ -1,4 +1,5 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { ThemeApplier } from "@/components/ThemeApplier";
 
 import appCss from "../styles.css?url";
 
