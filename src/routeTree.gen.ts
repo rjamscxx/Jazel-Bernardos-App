@@ -9,12 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as GhettoRouteImport } from './routes/ghetto'
 import { Route as ExpressRouteImport } from './routes/express'
+import { Route as DupartRouteImport } from './routes/dupart'
 import { Route as IndexRouteImport } from './routes/index'
 
+const GhettoRoute = GhettoRouteImport.update({
+  id: '/ghetto',
+  path: '/ghetto',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExpressRoute = ExpressRouteImport.update({
   id: '/express',
   path: '/express',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DupartRoute = DupartRouteImport.update({
+  id: '/dupart',
+  path: '/dupart',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -25,37 +37,59 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dupart': typeof DupartRoute
   '/express': typeof ExpressRoute
+  '/ghetto': typeof GhettoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dupart': typeof DupartRoute
   '/express': typeof ExpressRoute
+  '/ghetto': typeof GhettoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dupart': typeof DupartRoute
   '/express': typeof ExpressRoute
+  '/ghetto': typeof GhettoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/express'
+  fullPaths: '/' | '/dupart' | '/express' | '/ghetto'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/express'
-  id: '__root__' | '/' | '/express'
+  to: '/' | '/dupart' | '/express' | '/ghetto'
+  id: '__root__' | '/' | '/dupart' | '/express' | '/ghetto'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DupartRoute: typeof DupartRoute
   ExpressRoute: typeof ExpressRoute
+  GhettoRoute: typeof GhettoRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/ghetto': {
+      id: '/ghetto'
+      path: '/ghetto'
+      fullPath: '/ghetto'
+      preLoaderRoute: typeof GhettoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/express': {
       id: '/express'
       path: '/express'
       fullPath: '/express'
       preLoaderRoute: typeof ExpressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dupart': {
+      id: '/dupart'
+      path: '/dupart'
+      fullPath: '/dupart'
+      preLoaderRoute: typeof DupartRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -70,8 +104,19 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DupartRoute: DupartRoute,
   ExpressRoute: ExpressRoute,
+  GhettoRoute: GhettoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
