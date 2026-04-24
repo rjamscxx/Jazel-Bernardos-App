@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus, Trash2, ShoppingCart, X, Receipt, TrendingUp } from "lucide-react";
 import { HubHeader } from "@/components/HubHeader";
+import { AuthGate } from "@/components/AuthGate";
 import {
   Card,
   Stat,
@@ -28,7 +29,11 @@ export const Route = createFileRoute("/dupart")({
       { property: "og:description", content: "Run the kitchen. Watch the margins." },
     ],
   }),
-  component: DupartPage,
+  component: () => (
+    <AuthGate>
+      <DupartPage />
+    </AuthGate>
+  ),
 });
 
 const TABS = [

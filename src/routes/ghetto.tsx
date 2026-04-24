@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, Calculator, Package, AlertTriangle } from "lucide-react";
 import { HubHeader } from "@/components/HubHeader";
+import { AuthGate } from "@/components/AuthGate";
 import {
   Card,
   Stat,
@@ -39,7 +40,11 @@ export const Route = createFileRoute("/ghetto")({
       { property: "og:description", content: "Every order, every roll, every screen." },
     ],
   }),
-  component: GhettoPage,
+  component: () => (
+    <AuthGate>
+      <GhettoPage />
+    </AuthGate>
+  ),
 });
 
 const TABS = [
