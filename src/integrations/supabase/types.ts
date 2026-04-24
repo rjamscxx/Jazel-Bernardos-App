@@ -14,7 +14,336 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      dupart_products: {
+        Row: {
+          cost: number
+          created_at: string
+          id: string
+          name: string
+          price: number
+          stock: number
+          user_id: string
+        }
+        Insert: {
+          cost?: number
+          created_at?: string
+          id?: string
+          name: string
+          price?: number
+          stock?: number
+          user_id: string
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          id?: string
+          name?: string
+          price?: number
+          stock?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      dupart_sales: {
+        Row: {
+          cash: number
+          change: number
+          created_at: string
+          id: string
+          items: Json
+          total: number
+          user_id: string
+        }
+        Insert: {
+          cash?: number
+          change?: number
+          created_at?: string
+          id?: string
+          items?: Json
+          total?: number
+          user_id: string
+        }
+        Update: {
+          cash?: number
+          change?: number
+          created_at?: string
+          id?: string
+          items?: Json
+          total?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      express_bookings: {
+        Row: {
+          client: string
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          rate: number
+          type: string
+          user_id: string
+        }
+        Insert: {
+          client: string
+          created_at?: string
+          date: string
+          id?: string
+          notes?: string | null
+          rate?: number
+          type: string
+          user_id: string
+        }
+        Update: {
+          client?: string
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          rate?: number
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      express_clients: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      express_expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          date: string
+          description: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          category: string
+          created_at?: string
+          date: string
+          description: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      express_maintenance: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          msg: string | null
+          note: string | null
+          sort_order: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          msg?: string | null
+          note?: string | null
+          sort_order?: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          msg?: string | null
+          note?: string | null
+          sort_order?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      express_trips: {
+        Row: {
+          created_at: string
+          date: string
+          earnings: number
+          fuel: number
+          id: string
+          notes: string | null
+          route: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          earnings?: number
+          fuel?: number
+          id?: string
+          notes?: string | null
+          route: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          earnings?: number
+          fuel?: number
+          id?: string
+          notes?: string | null
+          route?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ghetto_materials: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          reorder: number
+          stock: number
+          unit: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          reorder?: number
+          stock?: number
+          unit?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          reorder?: number
+          stock?: number
+          unit?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ghetto_orders: {
+        Row: {
+          client: string
+          created_at: string
+          date: string
+          dp: number
+          id: string
+          item: string
+          notes: string | null
+          price: number
+          qty: number
+          size: string | null
+          status: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          client: string
+          created_at?: string
+          date: string
+          dp?: number
+          id?: string
+          item: string
+          notes?: string | null
+          price?: number
+          qty?: number
+          size?: string | null
+          status?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          client?: string
+          created_at?: string
+          date?: string
+          dp?: number
+          id?: string
+          item?: string
+          notes?: string | null
+          price?: number
+          qty?: number
+          size?: string | null
+          status?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          business_name: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          business_name?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          business_name?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
