@@ -1,10 +1,9 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { uid } from "@/lib/format";
+import { supabase } from "@/integrations/supabase/client";
 
-// ─────────── Types ───────────
+// ─────────── Types (ids are now uuid strings) ───────────
 export type ExpressTrip = {
-  id: number;
+  id: string;
   date: string;
   type: string;
   route: string;
@@ -13,14 +12,14 @@ export type ExpressTrip = {
   notes: string;
 };
 export type ExpressExpense = {
-  id: number;
+  id: string;
   date: string;
   category: string;
   desc: string;
   amount: number;
 };
 export type ExpressBooking = {
-  id: number;
+  id: string;
   date: string;
   client: string;
   type: string;
@@ -28,7 +27,7 @@ export type ExpressBooking = {
   notes: string;
 };
 export type ExpressClient = {
-  id: number;
+  id: string;
   name: string;
   phone: string;
   address: string;
@@ -36,7 +35,7 @@ export type ExpressClient = {
   notes: string;
 };
 export type Maintenance = {
-  id: number;
+  id: string;
   label: string;
   note: string;
   status: "good" | "warn" | "alert";
@@ -44,15 +43,15 @@ export type Maintenance = {
 };
 
 export type DupartProduct = {
-  id: number;
+  id: string;
   name: string;
   price: number;
   cost: number;
   stock: number;
 };
-export type DupartSaleItem = { productId: number; name: string; price: number; qty: number };
+export type DupartSaleItem = { productId: string; name: string; price: number; qty: number };
 export type DupartSale = {
-  id: number;
+  id: string;
   date: string;
   items: DupartSaleItem[];
   total: number;
@@ -61,7 +60,7 @@ export type DupartSale = {
 };
 
 export type GhettoOrder = {
-  id: number;
+  id: string;
   client: string;
   type: string;
   item: string;
@@ -74,7 +73,7 @@ export type GhettoOrder = {
   dp: number;
 };
 export type GhettoMaterial = {
-  id: number;
+  id: string;
   name: string;
   unit: string;
   stock: number;
@@ -114,92 +113,48 @@ export const DTF_PRICE: Record<string, number> = {
 };
 export const PRINT_ITEMS = ["T-shirt", "Polo", "Hoodie", "Tote Bag", "Cap", "Other"];
 
-// ─────────── Defaults ───────────
-const DEFAULTS = {
+const EMPTY = {
   express: {
-    trips: [
-      { id: 1, date: "2025-04-20", type: "Lalamove", route: "Laguna → Pasay", earnings: 850, fuel: 200, notes: "" },
-      { id: 2, date: "2025-04-21", type: "Rental – Full Day", route: "Biñan → Tagaytay", earnings: 3500, fuel: 600, notes: "Client: Mark" },
-      { id: 3, date: "2025-04-22", type: "Lalamove", route: "San Pedro → Parañaque", earnings: 620, fuel: 150, notes: "" },
-    ] as ExpressTrip[],
-    expenses: [
-      { id: 1, date: "2025-04-15", category: "Maintenance", desc: "Oil change", amount: 800 },
-      { id: 2, date: "2025-04-18", category: "Repair", desc: "Brake pads", amount: 1200 },
-    ] as ExpressExpense[],
-    bookings: [
-      { id: 1, date: "2025-04-28", client: "Mark Santos", type: "Rental – Full Day", rate: 3500, notes: "Tagaytay trip" },
-      { id: 2, date: "2025-05-02", client: "Anna Reyes", type: "Rental – Half Day", rate: 2000, notes: "Airport pickup" },
-    ] as ExpressBooking[],
-    clients: [
-      { id: 1, name: "Mark Santos", phone: "09171234567", address: "Biñan, Laguna", type: "Rental", notes: "Regular client" },
-      { id: 2, name: "Anna Reyes", phone: "09281234567", address: "Parañaque", type: "Rental", notes: "Airport runs" },
-    ] as ExpressClient[],
-    maintenance: [
-      { id: 1, label: "Oil Change", note: "Every 5,000 km / 3 months", status: "good", msg: "Up to date" },
-      { id: 2, label: "Tire Rotation", note: "Due in: 2 weeks", status: "warn", msg: "Schedule soon" },
-      { id: 3, label: "LTO Registration", note: "Expires: June 2025", status: "alert", msg: "Renewal required" },
-      { id: 4, label: "Air Filter", note: "Replaced: March 2025", status: "good", msg: "Good condition" },
-      { id: 5, label: "Battery Check", note: "Last checked: Feb 2025", status: "warn", msg: "Check soon" },
-      { id: 6, label: "Brake Fluid", note: "Next: 20,000 km", status: "good", msg: "Up to date" },
-    ] as Maintenance[],
+    trips: [] as ExpressTrip[],
+    expenses: [] as ExpressExpense[],
+    bookings: [] as ExpressBooking[],
+    clients: [] as ExpressClient[],
+    maintenance: [] as Maintenance[],
   },
-  dupart: {
-    products: [
-      { id: 1, name: "Classic Hotdog", price: 25, cost: 12, stock: 50 },
-      { id: 2, name: "Jumbo Hotdog", price: 35, cost: 18, stock: 40 },
-      { id: 3, name: "Cheesy Dog", price: 40, cost: 20, stock: 30 },
-      { id: 4, name: "Spicy Dog", price: 35, cost: 17, stock: 35 },
-      { id: 5, name: "Corn Dog", price: 30, cost: 14, stock: 25 },
-      { id: 6, name: "Double Dog", price: 50, cost: 26, stock: 20 },
-      { id: 7, name: "Softdrink (330ml)", price: 20, cost: 10, stock: 60 },
-      { id: 8, name: "Bottled Water", price: 10, cost: 5, stock: 80 },
-    ] as DupartProduct[],
-    sales: [] as DupartSale[],
-  },
-  ghetto: {
-    orders: [
-      { id: 1, client: "Juan dela Cruz", type: "DTF Print", item: "T-shirt", qty: 12, size: "A4", price: 840, status: "In Progress", date: "2025-04-20", notes: "White shirt, full color", dp: 420 },
-      { id: 2, client: "Maria Santos", type: "Silkscreen", item: "Polo", qty: 24, size: "A3", price: 2400, status: "Pending", date: "2025-04-21", notes: "2-color, black ink", dp: 1200 },
-      { id: 3, client: "Pedro Garcia", type: "DTF Print", item: "Hoodie", qty: 6, size: "A4", price: 900, status: "For Pickup", date: "2025-04-19", notes: "", dp: 0 },
-    ] as GhettoOrder[],
-    materials: [
-      { id: 1, name: "DTF Film Roll (30cm)", unit: "meters", stock: 45, reorder: 10 },
-      { id: 2, name: "DTF Ink Set (CMYK+W)", unit: "sets", stock: 3, reorder: 2 },
-      { id: 3, name: "Hot Melt Adhesive Powder", unit: "kg", stock: 2.5, reorder: 1 },
-      { id: 4, name: "Silkscreen Ink – Black", unit: "liters", stock: 1.2, reorder: 0.5 },
-      { id: 5, name: "Silkscreen Ink – Colors", unit: "liters", stock: 0.8, reorder: 0.5 },
-      { id: 6, name: "Silk Mesh Frames (A3)", unit: "pcs", stock: 8, reorder: 3 },
-      { id: 7, name: "Plain T-shirts (White)", unit: "pcs", stock: 24, reorder: 12 },
-      { id: 8, name: "Emulsion (for silkscreen)", unit: "liters", stock: 0.6, reorder: 0.3 },
-    ] as GhettoMaterial[],
-  },
+  dupart: { products: [] as DupartProduct[], sales: [] as DupartSale[] },
+  ghetto: { orders: [] as GhettoOrder[], materials: [] as GhettoMaterial[] },
 };
 
-type State = typeof DEFAULTS & {
+type State = typeof EMPTY & {
   theme: "dark" | "light";
+  loaded: boolean;
+  userId: string | null;
 };
 
 type Actions = {
+  // lifecycle
+  loadAll: (userId: string) => Promise<void>;
+  reset: () => void;
   // express
-  addTrip: (t: Omit<ExpressTrip, "id">) => void;
-  removeTrip: (id: number) => void;
-  addExpense: (e: Omit<ExpressExpense, "id">) => void;
-  removeExpense: (id: number) => void;
-  addBooking: (b: Omit<ExpressBooking, "id">) => void;
-  removeBooking: (id: number) => void;
-  addClient: (c: Omit<ExpressClient, "id">) => void;
-  removeClient: (id: number) => void;
-  cycleMaintenance: (id: number) => void;
+  addTrip: (t: Omit<ExpressTrip, "id">) => Promise<void>;
+  removeTrip: (id: string) => Promise<void>;
+  addExpense: (e: Omit<ExpressExpense, "id">) => Promise<void>;
+  removeExpense: (id: string) => Promise<void>;
+  addBooking: (b: Omit<ExpressBooking, "id">) => Promise<void>;
+  removeBooking: (id: string) => Promise<void>;
+  addClient: (c: Omit<ExpressClient, "id">) => Promise<void>;
+  removeClient: (id: string) => Promise<void>;
+  cycleMaintenance: (id: string) => Promise<void>;
   // dupart
-  upsertProduct: (p: Omit<DupartProduct, "id"> & { id?: number }) => void;
-  removeProduct: (id: number) => void;
-  recordSale: (sale: Omit<DupartSale, "id" | "date">) => DupartSale;
+  upsertProduct: (p: Omit<DupartProduct, "id"> & { id?: string }) => Promise<void>;
+  removeProduct: (id: string) => Promise<void>;
+  recordSale: (sale: Omit<DupartSale, "id" | "date">) => Promise<DupartSale | null>;
   // ghetto
-  upsertOrder: (o: Omit<GhettoOrder, "id"> & { id?: number }) => void;
-  removeOrder: (id: number) => void;
-  setOrderStatus: (id: number, status: GhettoOrder["status"]) => void;
-  upsertMaterial: (m: Omit<GhettoMaterial, "id"> & { id?: number }) => void;
-  removeMaterial: (id: number) => void;
+  upsertOrder: (o: Omit<GhettoOrder, "id"> & { id?: string }) => Promise<void>;
+  removeOrder: (id: string) => Promise<void>;
+  setOrderStatus: (id: string, status: GhettoOrder["status"]) => Promise<void>;
+  upsertMaterial: (m: Omit<GhettoMaterial, "id"> & { id?: string }) => Promise<void>;
+  removeMaterial: (id: string) => Promise<void>;
   // ui
   setTheme: (t: "dark" | "light") => void;
 };
@@ -215,105 +170,474 @@ const statusMsg: Record<Maintenance["status"], string> = {
   alert: "Renewal required",
 };
 
-export const useHub = create<State & Actions>()(
-  persist(
-    (set) => ({
-      ...DEFAULTS,
-      theme: "dark",
+// Theme persistence (kept in localStorage, not user-scoped)
+const initialTheme: "dark" | "light" =
+  (typeof window !== "undefined" && (localStorage.getItem("hub_theme") as "dark" | "light")) ||
+  "dark";
 
-      addTrip: (t) =>
-        set((s) => ({ express: { ...s.express, trips: [{ id: uid(), ...t }, ...s.express.trips] } })),
-      removeTrip: (id) =>
-        set((s) => ({ express: { ...s.express, trips: s.express.trips.filter((x) => x.id !== id) } })),
-      addExpense: (e) =>
-        set((s) => ({ express: { ...s.express, expenses: [{ id: uid(), ...e }, ...s.express.expenses] } })),
-      removeExpense: (id) =>
-        set((s) => ({ express: { ...s.express, expenses: s.express.expenses.filter((x) => x.id !== id) } })),
-      addBooking: (b) =>
-        set((s) => ({ express: { ...s.express, bookings: [{ id: uid(), ...b }, ...s.express.bookings] } })),
-      removeBooking: (id) =>
-        set((s) => ({ express: { ...s.express, bookings: s.express.bookings.filter((x) => x.id !== id) } })),
-      addClient: (c) =>
-        set((s) => ({ express: { ...s.express, clients: [{ id: uid(), ...c }, ...s.express.clients] } })),
-      removeClient: (id) =>
-        set((s) => ({ express: { ...s.express, clients: s.express.clients.filter((x) => x.id !== id) } })),
-      cycleMaintenance: (id) =>
-        set((s) => ({
-          express: {
-            ...s.express,
-            maintenance: s.express.maintenance.map((m) => {
-              if (m.id !== id) return m;
-              const ns = nextStatus[m.status];
-              return { ...m, status: ns, msg: statusMsg[ns] };
-            }),
-          },
+export const useHub = create<State & Actions>((set, get) => ({
+  ...EMPTY,
+  theme: initialTheme,
+  loaded: false,
+  userId: null,
+
+  setTheme: (theme) => {
+    if (typeof window !== "undefined") localStorage.setItem("hub_theme", theme);
+    set({ theme });
+  },
+
+  reset: () => set({ ...EMPTY, loaded: false, userId: null }),
+
+  loadAll: async (userId) => {
+    set({ userId, loaded: false });
+    const [trips, expenses, bookings, clients, maintenance, products, sales, orders, materials] =
+      await Promise.all([
+        supabase.from("express_trips").select("*").order("date", { ascending: false }),
+        supabase.from("express_expenses").select("*").order("date", { ascending: false }),
+        supabase.from("express_bookings").select("*").order("date", { ascending: false }),
+        supabase.from("express_clients").select("*").order("created_at", { ascending: false }),
+        supabase.from("express_maintenance").select("*").order("sort_order"),
+        supabase.from("dupart_products").select("*").order("created_at"),
+        supabase.from("dupart_sales").select("*").order("created_at", { ascending: false }),
+        supabase.from("ghetto_orders").select("*").order("date", { ascending: false }),
+        supabase.from("ghetto_materials").select("*").order("created_at"),
+      ]);
+    set({
+      express: {
+        trips: (trips.data || []).map((t) => ({
+          id: t.id,
+          date: t.date,
+          type: t.type,
+          route: t.route,
+          earnings: Number(t.earnings),
+          fuel: Number(t.fuel),
+          notes: t.notes || "",
         })),
-
-      upsertProduct: (p) =>
-        set((s) => {
-          const products = [...s.dupart.products];
-          if (p.id) {
-            const i = products.findIndex((x) => x.id === p.id);
-            if (i >= 0) products[i] = { ...products[i], ...p } as DupartProduct;
-          } else {
-            products.unshift({ id: uid(), ...p } as DupartProduct);
-          }
-          return { dupart: { ...s.dupart, products } };
-        }),
-      removeProduct: (id) =>
-        set((s) => ({ dupart: { ...s.dupart, products: s.dupart.products.filter((x) => x.id !== id) } })),
-      recordSale: (sale) => {
-        const newSale: DupartSale = { id: uid(), date: new Date().toISOString(), ...sale };
-        set((s) => {
-          // decrement stock
-          const products = s.dupart.products.map((p) => {
-            const item = sale.items.find((i) => i.productId === p.id);
-            return item ? { ...p, stock: Math.max(0, p.stock - item.qty) } : p;
-          });
-          return { dupart: { ...s.dupart, products, sales: [newSale, ...s.dupart.sales] } };
-        });
-        return newSale;
+        expenses: (expenses.data || []).map((e) => ({
+          id: e.id,
+          date: e.date,
+          category: e.category,
+          desc: e.description,
+          amount: Number(e.amount),
+        })),
+        bookings: (bookings.data || []).map((b) => ({
+          id: b.id,
+          date: b.date,
+          client: b.client,
+          type: b.type,
+          rate: Number(b.rate),
+          notes: b.notes || "",
+        })),
+        clients: (clients.data || []).map((c) => ({
+          id: c.id,
+          name: c.name,
+          phone: c.phone || "",
+          address: c.address || "",
+          type: c.type || "",
+          notes: c.notes || "",
+        })),
+        maintenance: (maintenance.data || []).map((m) => ({
+          id: m.id,
+          label: m.label,
+          note: m.note || "",
+          status: m.status as Maintenance["status"],
+          msg: m.msg || "",
+        })),
       },
-
-      upsertOrder: (o) =>
-        set((s) => {
-          const orders = [...s.ghetto.orders];
-          if (o.id) {
-            const i = orders.findIndex((x) => x.id === o.id);
-            if (i >= 0) orders[i] = { ...orders[i], ...o } as GhettoOrder;
-          } else {
-            orders.unshift({ id: uid(), ...o } as GhettoOrder);
-          }
-          return { ghetto: { ...s.ghetto, orders } };
-        }),
-      removeOrder: (id) =>
-        set((s) => ({ ghetto: { ...s.ghetto, orders: s.ghetto.orders.filter((x) => x.id !== id) } })),
-      setOrderStatus: (id, status) =>
-        set((s) => ({
-          ghetto: {
-            ...s.ghetto,
-            orders: s.ghetto.orders.map((o) => (o.id === id ? { ...o, status } : o)),
-          },
+      dupart: {
+        products: (products.data || []).map((p) => ({
+          id: p.id,
+          name: p.name,
+          price: Number(p.price),
+          cost: Number(p.cost),
+          stock: Number(p.stock),
         })),
-      upsertMaterial: (m) =>
-        set((s) => {
-          const materials = [...s.ghetto.materials];
-          if (m.id) {
-            const i = materials.findIndex((x) => x.id === m.id);
-            if (i >= 0) materials[i] = { ...materials[i], ...m } as GhettoMaterial;
-          } else {
-            materials.unshift({ id: uid(), ...m } as GhettoMaterial);
-          }
-          return { ghetto: { ...s.ghetto, materials } };
-        }),
-      removeMaterial: (id) =>
-        set((s) => ({ ghetto: { ...s.ghetto, materials: s.ghetto.materials.filter((x) => x.id !== id) } })),
+        sales: (sales.data || []).map((s) => ({
+          id: s.id,
+          date: s.created_at,
+          items: (s.items as DupartSaleItem[]) || [],
+          total: Number(s.total),
+          cash: Number(s.cash),
+          change: Number(s.change),
+        })),
+      },
+      ghetto: {
+        orders: (orders.data || []).map((o) => ({
+          id: o.id,
+          client: o.client,
+          type: o.type,
+          item: o.item,
+          qty: o.qty,
+          size: o.size || "",
+          price: Number(o.price),
+          status: o.status as GhettoOrder["status"],
+          date: o.date,
+          notes: o.notes || "",
+          dp: Number(o.dp),
+        })),
+        materials: (materials.data || []).map((m) => ({
+          id: m.id,
+          name: m.name,
+          unit: m.unit || "",
+          stock: Number(m.stock),
+          reorder: Number(m.reorder),
+        })),
+      },
+      loaded: true,
+    });
+  },
 
-      setTheme: (theme) => set({ theme }),
-    }),
-    {
-      name: "jbh_v3",
-      version: 1,
-    },
-  ),
-);
+  // ── Express ──
+  addTrip: async (t) => {
+    const userId = get().userId;
+    if (!userId) return;
+    const { data } = await supabase
+      .from("express_trips")
+      .insert({ user_id: userId, ...t })
+      .select()
+      .single();
+    if (!data) return;
+    const row: ExpressTrip = {
+      id: data.id,
+      date: data.date,
+      type: data.type,
+      route: data.route,
+      earnings: Number(data.earnings),
+      fuel: Number(data.fuel),
+      notes: data.notes || "",
+    };
+    set((s) => ({ express: { ...s.express, trips: [row, ...s.express.trips] } }));
+  },
+  removeTrip: async (id) => {
+    await supabase.from("express_trips").delete().eq("id", id);
+    set((s) => ({ express: { ...s.express, trips: s.express.trips.filter((x) => x.id !== id) } }));
+  },
+
+  addExpense: async (e) => {
+    const userId = get().userId;
+    if (!userId) return;
+    const { data } = await supabase
+      .from("express_expenses")
+      .insert({
+        user_id: userId,
+        date: e.date,
+        category: e.category,
+        description: e.desc,
+        amount: e.amount,
+      })
+      .select()
+      .single();
+    if (!data) return;
+    const row: ExpressExpense = {
+      id: data.id,
+      date: data.date,
+      category: data.category,
+      desc: data.description,
+      amount: Number(data.amount),
+    };
+    set((s) => ({ express: { ...s.express, expenses: [row, ...s.express.expenses] } }));
+  },
+  removeExpense: async (id) => {
+    await supabase.from("express_expenses").delete().eq("id", id);
+    set((s) => ({
+      express: { ...s.express, expenses: s.express.expenses.filter((x) => x.id !== id) },
+    }));
+  },
+
+  addBooking: async (b) => {
+    const userId = get().userId;
+    if (!userId) return;
+    const { data } = await supabase
+      .from("express_bookings")
+      .insert({ user_id: userId, ...b })
+      .select()
+      .single();
+    if (!data) return;
+    const row: ExpressBooking = {
+      id: data.id,
+      date: data.date,
+      client: data.client,
+      type: data.type,
+      rate: Number(data.rate),
+      notes: data.notes || "",
+    };
+    set((s) => ({ express: { ...s.express, bookings: [row, ...s.express.bookings] } }));
+  },
+  removeBooking: async (id) => {
+    await supabase.from("express_bookings").delete().eq("id", id);
+    set((s) => ({
+      express: { ...s.express, bookings: s.express.bookings.filter((x) => x.id !== id) },
+    }));
+  },
+
+  addClient: async (c) => {
+    const userId = get().userId;
+    if (!userId) return;
+    const { data } = await supabase
+      .from("express_clients")
+      .insert({ user_id: userId, ...c })
+      .select()
+      .single();
+    if (!data) return;
+    const row: ExpressClient = {
+      id: data.id,
+      name: data.name,
+      phone: data.phone || "",
+      address: data.address || "",
+      type: data.type || "",
+      notes: data.notes || "",
+    };
+    set((s) => ({ express: { ...s.express, clients: [row, ...s.express.clients] } }));
+  },
+  removeClient: async (id) => {
+    await supabase.from("express_clients").delete().eq("id", id);
+    set((s) => ({
+      express: { ...s.express, clients: s.express.clients.filter((x) => x.id !== id) },
+    }));
+  },
+
+  cycleMaintenance: async (id) => {
+    const m = get().express.maintenance.find((x) => x.id === id);
+    if (!m) return;
+    const ns = nextStatus[m.status];
+    const msg = statusMsg[ns];
+    set((s) => ({
+      express: {
+        ...s.express,
+        maintenance: s.express.maintenance.map((x) =>
+          x.id === id ? { ...x, status: ns, msg } : x,
+        ),
+      },
+    }));
+    await supabase.from("express_maintenance").update({ status: ns, msg }).eq("id", id);
+  },
+
+  // ── Dupart ──
+  upsertProduct: async (p) => {
+    const userId = get().userId;
+    if (!userId) return;
+    if (p.id) {
+      const { data } = await supabase
+        .from("dupart_products")
+        .update({ name: p.name, price: p.price, cost: p.cost, stock: p.stock })
+        .eq("id", p.id)
+        .select()
+        .single();
+      if (!data) return;
+      set((s) => ({
+        dupart: {
+          ...s.dupart,
+          products: s.dupart.products.map((x) =>
+            x.id === p.id
+              ? {
+                  id: data.id,
+                  name: data.name,
+                  price: Number(data.price),
+                  cost: Number(data.cost),
+                  stock: Number(data.stock),
+                }
+              : x,
+          ),
+        },
+      }));
+    } else {
+      const { data } = await supabase
+        .from("dupart_products")
+        .insert({ user_id: userId, name: p.name, price: p.price, cost: p.cost, stock: p.stock })
+        .select()
+        .single();
+      if (!data) return;
+      const row: DupartProduct = {
+        id: data.id,
+        name: data.name,
+        price: Number(data.price),
+        cost: Number(data.cost),
+        stock: Number(data.stock),
+      };
+      set((s) => ({ dupart: { ...s.dupart, products: [row, ...s.dupart.products] } }));
+    }
+  },
+  removeProduct: async (id) => {
+    await supabase.from("dupart_products").delete().eq("id", id);
+    set((s) => ({
+      dupart: { ...s.dupart, products: s.dupart.products.filter((x) => x.id !== id) },
+    }));
+  },
+  recordSale: async (sale) => {
+    const userId = get().userId;
+    if (!userId) return null;
+    const { data } = await supabase
+      .from("dupart_sales")
+      .insert({
+        user_id: userId,
+        items: sale.items,
+        total: sale.total,
+        cash: sale.cash,
+        change: sale.change,
+      })
+      .select()
+      .single();
+    if (!data) return null;
+    const newSale: DupartSale = {
+      id: data.id,
+      date: data.created_at,
+      items: (data.items as DupartSaleItem[]) || [],
+      total: Number(data.total),
+      cash: Number(data.cash),
+      change: Number(data.change),
+    };
+    // decrement local stock immediately + persist new stock per product
+    const updates = sale.items.map(async (item) => {
+      const prod = get().dupart.products.find((p) => p.id === item.productId);
+      if (!prod) return;
+      const newStock = Math.max(0, prod.stock - item.qty);
+      await supabase.from("dupart_products").update({ stock: newStock }).eq("id", prod.id);
+    });
+    await Promise.all(updates);
+    set((s) => ({
+      dupart: {
+        ...s.dupart,
+        sales: [newSale, ...s.dupart.sales],
+        products: s.dupart.products.map((p) => {
+          const item = sale.items.find((i) => i.productId === p.id);
+          return item ? { ...p, stock: Math.max(0, p.stock - item.qty) } : p;
+        }),
+      },
+    }));
+    return newSale;
+  },
+
+  // ── Ghetto ──
+  upsertOrder: async (o) => {
+    const userId = get().userId;
+    if (!userId) return;
+    const payload = {
+      client: o.client,
+      type: o.type,
+      item: o.item,
+      qty: o.qty,
+      size: o.size,
+      price: o.price,
+      status: o.status,
+      date: o.date,
+      notes: o.notes,
+      dp: o.dp,
+    };
+    if (o.id) {
+      const { data } = await supabase
+        .from("ghetto_orders")
+        .update(payload)
+        .eq("id", o.id)
+        .select()
+        .single();
+      if (!data) return;
+      set((s) => ({
+        ghetto: {
+          ...s.ghetto,
+          orders: s.ghetto.orders.map((x) =>
+            x.id === o.id
+              ? {
+                  id: data.id,
+                  client: data.client,
+                  type: data.type,
+                  item: data.item,
+                  qty: data.qty,
+                  size: data.size || "",
+                  price: Number(data.price),
+                  status: data.status as GhettoOrder["status"],
+                  date: data.date,
+                  notes: data.notes || "",
+                  dp: Number(data.dp),
+                }
+              : x,
+          ),
+        },
+      }));
+    } else {
+      const { data } = await supabase
+        .from("ghetto_orders")
+        .insert({ user_id: userId, ...payload })
+        .select()
+        .single();
+      if (!data) return;
+      const row: GhettoOrder = {
+        id: data.id,
+        client: data.client,
+        type: data.type,
+        item: data.item,
+        qty: data.qty,
+        size: data.size || "",
+        price: Number(data.price),
+        status: data.status as GhettoOrder["status"],
+        date: data.date,
+        notes: data.notes || "",
+        dp: Number(data.dp),
+      };
+      set((s) => ({ ghetto: { ...s.ghetto, orders: [row, ...s.ghetto.orders] } }));
+    }
+  },
+  removeOrder: async (id) => {
+    await supabase.from("ghetto_orders").delete().eq("id", id);
+    set((s) => ({ ghetto: { ...s.ghetto, orders: s.ghetto.orders.filter((x) => x.id !== id) } }));
+  },
+  setOrderStatus: async (id, status) => {
+    set((s) => ({
+      ghetto: {
+        ...s.ghetto,
+        orders: s.ghetto.orders.map((o) => (o.id === id ? { ...o, status } : o)),
+      },
+    }));
+    await supabase.from("ghetto_orders").update({ status }).eq("id", id);
+  },
+  upsertMaterial: async (m) => {
+    const userId = get().userId;
+    if (!userId) return;
+    const payload = { name: m.name, unit: m.unit, stock: m.stock, reorder: m.reorder };
+    if (m.id) {
+      const { data } = await supabase
+        .from("ghetto_materials")
+        .update(payload)
+        .eq("id", m.id)
+        .select()
+        .single();
+      if (!data) return;
+      set((s) => ({
+        ghetto: {
+          ...s.ghetto,
+          materials: s.ghetto.materials.map((x) =>
+            x.id === m.id
+              ? {
+                  id: data.id,
+                  name: data.name,
+                  unit: data.unit || "",
+                  stock: Number(data.stock),
+                  reorder: Number(data.reorder),
+                }
+              : x,
+          ),
+        },
+      }));
+    } else {
+      const { data } = await supabase
+        .from("ghetto_materials")
+        .insert({ user_id: userId, ...payload })
+        .select()
+        .single();
+      if (!data) return;
+      const row: GhettoMaterial = {
+        id: data.id,
+        name: data.name,
+        unit: data.unit || "",
+        stock: Number(data.stock),
+        reorder: Number(data.reorder),
+      };
+      set((s) => ({ ghetto: { ...s.ghetto, materials: [row, ...s.ghetto.materials] } }));
+    }
+  },
+  removeMaterial: async (id) => {
+    await supabase.from("ghetto_materials").delete().eq("id", id);
+    set((s) => ({
+      ghetto: { ...s.ghetto, materials: s.ghetto.materials.filter((x) => x.id !== id) },
+    }));
+  },
+}));
