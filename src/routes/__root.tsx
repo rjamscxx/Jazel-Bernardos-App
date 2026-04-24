@@ -47,6 +47,12 @@ export const Route = createRootRoute({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Jazel Bernardo — Business Hub" },
+      { name: "description", content: "Seamless Solutions is a professional business hub application for managing your company's operations." },
+      { property: "og:description", content: "Seamless Solutions is a professional business hub application for managing your company's operations." },
+      { name: "twitter:description", content: "Seamless Solutions is a professional business hub application for managing your company's operations." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b7da8883-97f5-4197-85e2-ff2965ef8e3a/id-preview-580f9699--8c1e02c5-a8b3-45d7-a951-4354b00c50b2.lovable.app-1777074804764.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b7da8883-97f5-4197-85e2-ff2965ef8e3a/id-preview-580f9699--8c1e02c5-a8b3-45d7-a951-4354b00c50b2.lovable.app-1777074804764.png" },
     ],
     links: [
       {
