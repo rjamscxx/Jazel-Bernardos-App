@@ -29,19 +29,39 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Jazel Bernardo — Business Hub" },
+      {
+        name: "description",
+        content:
+          "The unified operations hub for Jazel Bernardo — managing Get Dat Express, Dupart, and Ghetto Print from one editorial command center.",
+      },
+      { name: "author", content: "Jazel Bernardo" },
+      { property: "og:title", content: "Jazel Bernardo — Business Hub" },
+      {
+        property: "og:description",
+        content:
+          "Three businesses, one operating system. POS, logistics and print operations in a single, beautiful interface.",
+      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "preconnect",
+        href: "https://fonts.googleapis.com",
+      },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap",
       },
     ],
   }),
