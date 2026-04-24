@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as GhettoRouteImport } from './routes/ghetto'
 import { Route as ExpressRouteImport } from './routes/express'
 import { Route as DupartRouteImport } from './routes/dupart'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 
 const GhettoRoute = GhettoRouteImport.update({
@@ -29,6 +30,11 @@ const DupartRoute = DupartRouteImport.update({
   path: '/dupart',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -37,12 +43,14 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/dupart': typeof DupartRoute
   '/express': typeof ExpressRoute
   '/ghetto': typeof GhettoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/dupart': typeof DupartRoute
   '/express': typeof ExpressRoute
   '/ghetto': typeof GhettoRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/dupart': typeof DupartRoute
   '/express': typeof ExpressRoute
   '/ghetto': typeof GhettoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dupart' | '/express' | '/ghetto'
+  fullPaths: '/' | '/auth' | '/dupart' | '/express' | '/ghetto'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dupart' | '/express' | '/ghetto'
-  id: '__root__' | '/' | '/dupart' | '/express' | '/ghetto'
+  to: '/' | '/auth' | '/dupart' | '/express' | '/ghetto'
+  id: '__root__' | '/' | '/auth' | '/dupart' | '/express' | '/ghetto'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   DupartRoute: typeof DupartRoute
   ExpressRoute: typeof ExpressRoute
   GhettoRoute: typeof GhettoRoute
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DupartRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   DupartRoute: DupartRoute,
   ExpressRoute: ExpressRoute,
   GhettoRoute: GhettoRoute,

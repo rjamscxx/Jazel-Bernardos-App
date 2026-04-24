@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, Truck, Wallet, Calendar, Users, Wrench, BarChart3 } from "lucide-react";
 import { HubHeader } from "@/components/HubHeader";
+import { AuthGate } from "@/components/AuthGate";
 import {
   Card,
   Stat,
@@ -39,7 +40,11 @@ export const Route = createFileRoute("/express")({
       },
     ],
   }),
-  component: ExpressPage,
+  component: () => (
+    <AuthGate>
+      <ExpressPage />
+    </AuthGate>
+  ),
 });
 
 const TABS = [

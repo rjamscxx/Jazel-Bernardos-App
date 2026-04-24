@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, Calculator, Package, AlertTriangle } from "lucide-react";
 import { HubHeader } from "@/components/HubHeader";
+import { AuthGate } from "@/components/AuthGate";
 import {
   Card,
   Stat,
@@ -39,7 +40,11 @@ export const Route = createFileRoute("/ghetto")({
       { property: "og:description", content: "Every order, every roll, every screen." },
     ],
   }),
-  component: GhettoPage,
+  component: () => (
+    <AuthGate>
+      <GhettoPage />
+    </AuthGate>
+  ),
 });
 
 const TABS = [
@@ -207,7 +212,7 @@ function Orders() {
   );
 }
 
-function OrderCard({ o, onStatus, onDelete }: { o: GhettoOrder; onStatus: (id: number, s: GhettoOrder["status"]) => void; onDelete: () => void }) {
+function OrderCard({ o, onStatus, onDelete }: { o: GhettoOrder; onStatus: (id: string, s: GhettoOrder["status"]) => void; onDelete: () => void }) {
   const balance = o.price - o.dp;
   return (
     <div className="rounded-lg border border-border bg-card p-4">

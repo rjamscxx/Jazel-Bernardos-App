@@ -1,8 +1,9 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, Bell, Moon, Sun } from "lucide-react";
+import { ArrowLeft, Bell, Moon, Sun, LogOut } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useHub } from "@/store/hub";
+import { useAuth } from "@/hooks/useAuth";
 
 type Props = {
   title: string;
@@ -15,6 +16,7 @@ export function HubHeader({ title, subtitle, alerts = [] }: Props) {
   const router = useRouter();
   const theme = useHub((s) => s.theme);
   const setTheme = useHub((s) => s.setTheme);
+  const { profile, user, signOut } = useAuth();
   const [notifOpen, setNotifOpen] = useState(false);
 
   const canGoBack = router.history.length > 1;
@@ -114,6 +116,16 @@ export function HubHeader({ title, subtitle, alerts = [] }: Props) {
           >
             {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
           </button>
+          {user && (
+            <button
+              onClick={() => signOut()}
+              className="ring-focus rounded-md p-2 text-muted-foreground transition-colors hover:text-foreground"
+              aria-label={`Sign out ${profile?.display_name ?? user.email ?? ""}`}
+              title={profile?.display_name ?? user.email ?? "Sign out"}
+            >
+              <LogOut className="size-4" />
+            </button>
+          )}
         </div>
       </div>
     </header>
