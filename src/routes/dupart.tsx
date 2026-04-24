@@ -14,7 +14,7 @@ import {
   Badge,
 } from "@/components/ui-kit";
 import { useHub, type DupartProduct, type DupartSale, type DupartSaleItem } from "@/store/hub";
-import { peso, shortDate } from "@/lib/format";
+import { peso } from "@/lib/format";
 
 export const Route = createFileRoute("/dupart")({
   head: () => ({
