@@ -96,17 +96,17 @@ function POS() {
     });
   };
 
-  const updateQty = (id: number, delta: number) =>
+  const updateQty = (id: string, delta: number) =>
     setCart((c) =>
       c
         .map((i) => (i.productId === id ? { ...i, qty: Math.max(0, i.qty + delta) } : i))
         .filter((i) => i.qty > 0),
     );
 
-  const checkout = () => {
+  const checkout = async () => {
     if (cart.length === 0 || change < 0) return;
-    const sale = recordSale({ items: cart, total, cash: Number(cash), change });
-    setReceipt(sale);
+    const sale = await recordSale({ items: cart, total, cash: Number(cash), change });
+    if (sale) setReceipt(sale);
     setCart([]);
     setCash("");
   };

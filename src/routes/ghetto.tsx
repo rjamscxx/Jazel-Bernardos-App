@@ -207,7 +207,7 @@ function Orders() {
   );
 }
 
-function OrderCard({ o, onStatus, onDelete }: { o: GhettoOrder; onStatus: (id: number, s: GhettoOrder["status"]) => void; onDelete: () => void }) {
+function OrderCard({ o, onStatus, onDelete }: { o: GhettoOrder; onStatus: (id: string, s: GhettoOrder["status"]) => void; onDelete: () => void }) {
   const balance = o.price - o.dp;
   return (
     <div className="rounded-lg border border-border bg-card p-4">
